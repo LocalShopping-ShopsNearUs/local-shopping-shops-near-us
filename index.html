@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Local Shopping - Mega Marketplace</title>
+    <title>Local Shopping - Marketplace</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
@@ -43,6 +43,14 @@
             margin-top:8px;
         }
 
+        .input{
+            padding:10px;
+            width:90%;
+            margin:8px 0;
+            border-radius:8px;
+            border:1px solid #ccc;
+        }
+
         .note{
             font-size:12px;
             color:gray;
@@ -54,29 +62,30 @@
 
 <div class="header">
     <h1>🛍️ Local Shopping</h1>
-    <p>Mega Marketplace 🚚📍</p>
+    <p>Marketplace + Shop Registration 🏪</p>
 </div>
 
 <div class="container">
 
-    <h2>Enable GPS 📍</h2>
+    <h2>📍 Enable GPS</h2>
     <button class="btn" onclick="getLocation()">Get My Location</button>
     <p id="status" class="note"></p>
 
-    <h2>All Categories 🏪</h2>
+    <h2>🏪 Register Your Shop</h2>
 
-    <div class="card"><h3>🥕 Grocery</h3><button class="btn" onclick="orderFromShop('Grocery')">Order</button></div>
-    <div class="card"><h3>👕 Fashion</h3><button class="btn" onclick="orderFromShop('Fashion')">Order</button></div>
-    <div class="card"><h3>📱 Mobile</h3><button class="btn" onclick="orderFromShop('Mobile')">Order</button></div>
-    <div class="card"><h3>📚 Books</h3><button class="btn" onclick="orderFromShop('Books')">Order</button></div>
-    <div class="card"><h3>🎒 Bags</h3><button class="btn" onclick="orderFromShop('Bags')">Order</button></div>
-    <div class="card"><h3>🧸 Toys</h3><button class="btn" onclick="orderFromShop('Toys')">Order</button></div>
-    <div class="card"><h3>✏️ Stationery</h3><button class="btn" onclick="orderFromShop('Stationery')">Order</button></div>
-    <div class="card"><h3>💄 Cosmetics</h3><button class="btn" onclick="orderFromShop('Cosmetics')">Order</button></div>
-    <div class="card"><h3>⚽ Sports Items</h3><button class="btn" onclick="orderFromShop('Sports')">Order</button></div>
-    <div class="card"><h3>🔌 Electronics</h3><button class="btn" onclick="orderFromShop('Electronics')">Order</button></div>
-    <div class="card"><h3>👟 Footwear</h3><button class="btn" onclick="orderFromShop('Footwear')">Order</button></div>
-    <div class="card"><h3>🍽️ Kitchen Items</h3><button class="btn" onclick="orderFromShop('Kitchen')">Order</button></div>
+    <div class="card">
+
+        <input class="input" id="shopName" placeholder="Shop Name">
+        <input class="input" id="shopCategory" placeholder="Category (Food, Fashion etc)">
+        <input class="input" id="shopLat" placeholder="Latitude">
+        <input class="input" id="shopLon" placeholder="Longitude">
+
+        <button class="btn" onclick="registerShop()">Register Shop</button>
+
+    </div>
+
+    <h2>🛍️ Registered Shops</h2>
+    <div id="shopList"></div>
 
 </div>
 
@@ -85,22 +94,9 @@
 let userLat = null;
 let userLon = null;
 
-// 🏪 Mega shop database
-let shops = {
-    Grocery:     {lat:26.5000, lon:74.9000, food:true},
-    Fashion:     {lat:26.5050, lon:74.9050, food:false},
-    Mobile:      {lat:26.5100, lon:74.9100, food:false},
-    Books:       {lat:26.5070, lon:74.9020, food:false},
-    Bags:        {lat:26.5030, lon:74.9080, food:false},
-    Toys:        {lat:26.5090, lon:74.9030, food:false},
-    Stationery:  {lat:26.5060, lon:74.9040, food:false},
-    Cosmetics:   {lat:26.5040, lon:74.9010, food:false},
-    Sports:      {lat:26.5080, lon:74.9090, food:false},
-    Electronics: {lat:26.5110, lon:74.9110, food:false},
-    Footwear:    {lat:26.5025, lon:74.9070, food:false},
-    Kitchen:     {lat:26.5015, lon:74.9060, food:false}
-};
+let shops = {};
 
+// GPS
 function getLocation(){
     if(navigator.geolocation){
         navigator.geolocation.getCurrentPosition(success, error);
@@ -121,51 +117,47 @@ function error(){
     alert("Please allow GPS ❌");
 }
 
-// 📍 Distance calculation
-function getDistance(lat1, lon1, lat2, lon2){
+// REGISTER SHOP
+function registerShop(){
 
-    let R = 6371;
+    let name = document.getElementById("shopName").value;
+    let category = document.getElementById("shopCategory").value;
+    let lat = parseFloat(document.getElementById("shopLat").value);
+    let lon = parseFloat(document.getElementById("shopLon").value);
 
-    let dLat = (lat2-lat1) * Math.PI / 180;
-    let dLon = (lon2-lon1) * Math.PI / 180;
+    if(!name || !category || !lat || !lon){
+        alert("Please fill all fields");
+        return;
+    }
 
-    let a =
-        Math.sin(dLat/2)**2 +
-        Math.cos(lat1*Math.PI/180) *
-        Math.cos(lat2*Math.PI/180) *
-        Math.sin(dLon/2)**2;
+    shops[name] = {
+        category: category,
+        lat: lat,
+        lon: lon,
+        food: (category.toLowerCase() === "food")
+    };
 
-    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    alert("Shop Registered Successfully 🏪");
 
-    return R * c;
+    showShops();
 }
 
-// 🛍️ ORDER SYSTEM
-function orderFromShop(shopName){
+// SHOW SHOPS
+function showShops(){
 
-    if(userLat == null){
-        alert("Please enable GPS first 📍");
-        return;
+    let div = document.getElementById("shopList");
+    div.innerHTML = "";
+
+    for(let key in shops){
+
+        div.innerHTML += `
+        <div class="card">
+            <h3>${key}</h3>
+            <p>Category: ${shops[key].category}</p>
+            <p>Location: ${shops[key].lat}, ${shops[key].lon}</p>
+        </div>
+        `;
     }
-
-    let shop = shops[shopName];
-
-    let distance = getDistance(userLat, userLon, shop.lat, shop.lon);
-    distance = distance.toFixed(2);
-
-    let deliveryFee = Math.round(distance * 5);
-
-    if(shop.food && distance > 5){
-        alert("❌ Food delivery only within 5 KM\nDistance: " + distance + " KM");
-        return;
-    }
-
-    alert(
-        "🛍️ Order Placed!\n" +
-        "Shop: " + shopName + "\n" +
-        "Distance: " + distance + " KM\n" +
-        "Delivery Fee: ₹" + deliveryFee
-    );
 }
 
 </script>
