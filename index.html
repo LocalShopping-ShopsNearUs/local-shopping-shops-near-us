@@ -4,6 +4,10 @@
     <title>Local Shopping - Shops Near Us</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Leaflet Map (FREE) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
     <style>
         body{
             font-family: Arial;
@@ -16,19 +20,6 @@
             color:white;
             padding:20px;
             text-align:center;
-            position:relative;
-        }
-
-        .cart-box{
-            position:absolute;
-            right:15px;
-            top:20px;
-            background:white;
-            color:#2196F3;
-            padding:5px 10px;
-            border-radius:20px;
-            font-weight:bold;
-            cursor:pointer;
         }
 
         .container{
@@ -36,13 +27,11 @@
             text-align:center;
         }
 
-        .input{
-            padding:10px;
-            width:85%;
-            max-width:300px;
-            margin:10px;
-            border-radius:8px;
-            border:1px solid #ccc;
+        #map{
+            height:300px;
+            width:100%;
+            border-radius:12px;
+            margin-top:10px;
         }
 
         .card{
@@ -65,20 +54,15 @@
             margin-top:8px;
         }
 
-        #cartBox{
-            display:none;
-            background:white;
-            padding:15px;
-            margin:15px auto;
-            max-width:350px;
-            border-radius:12px;
-            box-shadow:0 3px 10px rgba(0,0,0,0.2);
+        .input{
+            padding:10px;
+            width:85%;
+            max-width:300px;
+            margin:10px;
+            border-radius:8px;
+            border:1px solid #ccc;
         }
 
-        .note{
-            color:gray;
-            font-size:12px;
-        }
     </style>
 </head>
 
@@ -86,162 +70,68 @@
 
 <div class="header">
     <h1>🛍️ Local Shopping</h1>
-    <p>Shops Near Us</p>
-
-    <div class="cart-box" onclick="toggleCart()">
-        🛒 <span id="cartCount">0</span>
-    </div>
+    <p>Shops Near Us (Map System)</p>
 </div>
 
 <div class="container">
 
-    <h2>Welcome!</h2>
+    <h2>Your Location 📍</h2>
+    <button class="btn" onclick="getLocation()">Show My Location</button>
 
-    <p class="note">We will use your GPS location for delivery 📍</p>
+    <div id="map"></div>
 
-    <button class="btn" onclick="getLocation()">
-        Enable GPS Location
-    </button>
-
-    <p id="locationText" class="note"></p>
-
-    <input class="input" type="text" id="searchInput" onkeyup="searchProducts()" placeholder="Search products...">
-
-    <h2>Popular Products</h2>
+    <h2>Nearby Shops</h2>
 
     <div class="card">
-        <h3>🍅 Tomato (Food)</h3>
-        <p>Price: ₹30/kg</p>
-        <button class="btn" onclick="addToCart('Tomato', true)">Add to Cart</button>
+        <h3>Fresh Grocery Store</h3>
+        <p>Vegetables, Fruits, Daily Essentials</p>
+        <button class="btn">Order Now</button>
     </div>
 
     <div class="card">
-        <h3>🍞 Bread (Food)</h3>
-        <p>Price: ₹40</p>
-        <button class="btn" onclick="addToCart('Bread', true)">Add to Cart</button>
-    </div>
-
-    <div class="card">
-        <h3>👕 T-Shirt</h3>
-        <p>Price: ₹499</p>
-        <button class="btn" onclick="addToCart('T-Shirt', false)">Add to Cart</button>
-    </div>
-
-    <div id="cartBox">
-        <h3>Your Cart 🛒</h3>
-        <ul id="cartList"></ul>
-
-        <button class="btn" onclick="checkout()">Checkout</button>
+        <h3>Fashion Hub</h3>
+        <p>Clothes, Shoes, Accessories</p>
+        <button class="btn">Order Now</button>
     </div>
 
 </div>
 
 <script>
 
-let cart = [];
-let userLat = null;
-let userLon = null;
+let map;
 
-function addToCart(item, isFood){
-    cart.push({name:item, food:isFood});
-    updateCartUI();
-    alert(item + " added to cart 🛒");
-}
-
-function updateCartUI(){
-    document.getElementById("cartCount").innerText = cart.length;
-}
-
-function toggleCart(){
-    let box = document.getElementById("cartBox");
-
-    if(box.style.display === "block"){
-        box.style.display = "none";
-    } else {
-        box.style.display = "block";
-        showCart();
-    }
-}
-
-function showCart(){
-    let list = document.getElementById("cartList");
-    list.innerHTML = "";
-
-    cart.forEach(function(item){
-        let li = document.createElement("li");
-        li.innerText = item.name;
-        list.appendChild(li);
-    });
-}
-
-// 🌍 GPS LOCATION FUNCTION
 function getLocation(){
     if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(showPosition, showError);
+        navigator.geolocation.getCurrentPosition(showMap);
     } else {
-        alert("GPS not supported in your device");
+        alert("GPS not supported");
     }
 }
 
-function showPosition(position){
-    userLat = position.coords.latitude;
-    userLon = position.coords.longitude;
+function showMap(position){
 
-    document.getElementById("locationText").innerText =
-    "Location saved ✔ (Delivery available)";
-}
+    let lat = position.coords.latitude;
+    let lon = position.coords.longitude;
 
-function showError(){
-    alert("Please allow location access ❌");
-}
+    // Create map
+    map = L.map('map').setView([lat, lon], 15);
 
-// 🚚 CHECKOUT (GPS BASED RULE)
-function checkout(){
-    if(cart.length === 0){
-        alert("Cart empty hai 😅");
-        return;
-    }
+    // OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-    if(userLat == null || userLon == null){
-        alert("Please enable GPS first 📍");
-        return;
-    }
+    // User marker
+    L.marker([lat, lon]).addTo(map)
+        .bindPopup("📍 You are here")
+        .openPopup();
 
-    // Demo rule: food delivery allowed only if GPS enabled
-    let hasFood = false;
+    // Demo shop markers
+    L.marker([lat + 0.002, lon + 0.002]).addTo(map)
+        .bindPopup("🛍️ Grocery Shop");
 
-    for(let i=0;i<cart.length;i++){
-        if(cart[i].food){
-            hasFood = true;
-        }
-    }
-
-    if(hasFood){
-        alert("🍔 Food order accepted!\nLocal delivery will be within 5 KM radius.");
-    } else {
-        alert("Order placed successfully 🛒");
-    }
-
-    cart = [];
-    updateCartUI();
-    showCart();
-    toggleCart();
-}
-
-function searchProducts() {
-    let input = document.getElementById("searchInput");
-    let filter = input.value.toLowerCase();
-    let cards = document.getElementsByClassName("card");
-
-    for (let i = 0; i < cards.length; i++) {
-        let text = cards[i].innerText.toLowerCase();
-
-        if (text.includes(filter)) {
-            cards[i].style.display = "";
-        } else {
-            cards[i].style.display = "none";
-        }
-    }
+    L.marker([lat - 0.002, lon - 0.002]).addTo(map)
+        .bindPopup("👕 Fashion Shop");
 }
 
 </script>
