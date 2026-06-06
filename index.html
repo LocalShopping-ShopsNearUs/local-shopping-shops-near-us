@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Local Shopping - Shops Near Us</title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
@@ -22,6 +21,15 @@
         .container{
             padding:15px;
             text-align:center;
+        }
+
+        .input{
+            padding:10px;
+            width:85%;
+            max-width:300px;
+            margin:10px;
+            border-radius:8px;
+            border:1px solid #ccc;
         }
 
         .card{
@@ -44,13 +52,10 @@
             margin-top:8px;
         }
 
-        .input{
-            padding:10px;
-            width:85%;
-            max-width:300px;
-            margin:5px;
-            border-radius:8px;
-            border:1px solid #ccc;
+        img{
+            width:100%;
+            border-radius:10px;
+            margin-bottom:10px;
         }
 
         .section-title{
@@ -61,86 +66,97 @@
 
 <body>
 
-    <div class="header">
-        <h1>🛍️ Local Shopping</h1>
-        <p>Shops Near Us</p>
+<div class="header">
+    <h1>🛍️ Local Shopping</h1>
+    <p>Shops Near Us</p>
+</div>
+
+<div class="container">
+
+    <h2>Welcome!</h2>
+    <p>Buy products from nearby local shops.</p>
+
+    <input class="input" type="text" id="searchInput" onkeyup="searchProducts()" placeholder="Search products...">
+    <p style="color:gray;">Search instantly 🔍</p>
+
+    <h2 class="section-title">Nearby Shops</h2>
+
+    <div class="card">
+        <h3>Fresh Grocery Store</h3>
+        <p>Vegetables, Fruits, Daily Essentials</p>
+        <a href="https://wa.me/911234567890">
+            <button class="btn">WhatsApp Shop</button>
+        </a>
     </div>
 
-    <div class="container">
+    <div class="card">
+        <h3>Fashion Hub</h3>
+        <p>Clothes, Shoes, Accessories</p>
+        <button class="btn" onclick="alert('Contact coming soon!')">Contact Shop</button>
+    </div>
 
-        <h2>Welcome!</h2>
-        <p>Buy products from nearby local shops.</p>
+    <div class="card">
+        <h3>Mobile World</h3>
+        <p>Smartphones, Chargers, Earphones</p>
+        <button class="btn" onclick="alert('Contact coming soon!')">Contact Shop</button>
+    </div>
 
-        <input class="input" type="text" placeholder="Search products...">
-        <p style="color:gray;">Search feature coming soon 🔍</p>
+    <h2 class="section-title">Popular Products</h2>
 
-        <h2 class="section-title">Nearby Shops</h2>
+    <div class="card product">
+        <img src="https://via.placeholder.com/300x180?text=Tomato">
+        <h3>🍅 Tomato</h3>
+        <p>Price: ₹30/kg</p>
+        <button class="btn" onclick="alert('Order coming soon!')">Buy Now</button>
+    </div>
 
-        <div class="card">
-            <h3>Fresh Grocery Store</h3>
-            <p>Vegetables, Fruits, Daily Essentials</p>
-            <a href="https://wa.me/911234567890">
-                <button class="btn">WhatsApp Shop</button>
-            </a>
-        </div>
+    <div class="card product">
+        <img src="https://via.placeholder.com/300x180?text=T-Shirt">
+        <h3>👕 T-Shirt</h3>
+        <p>Price: ₹499</p>
+        <button class="btn" onclick="alert('Order coming soon!')">Buy Now</button>
+    </div>
 
-        <div class="card">
-            <h3>Fashion Hub</h3>
-            <p>Clothes, Shoes, Accessories</p>
-            <button class="btn" onclick="alert('Contact feature coming soon!')">
-                Contact Shop
-            </button>
-        </div>
+    <div class="card product">
+        <img src="https://via.placeholder.com/300x180?text=Earphones">
+        <h3>🎧 Earphones</h3>
+        <p>Price: ₹299</p>
+        <button class="btn" onclick="alert('Order coming soon!')">Buy Now</button>
+    </div>
 
-        <div class="card">
-            <h3>Mobile World</h3>
-            <p>Smartphones, Chargers, Earphones</p>
-            <button class="btn" onclick="alert('Contact feature coming soon!')">
-                Contact Shop
-            </button>
-        </div>
+    <h2 class="section-title">Register Your Shop</h2>
 
-        <h2 class="section-title">Popular Products</h2>
+    <div class="card">
 
-        <div class="card">
-            <h3>🍅 Tomato</h3>
-            <p>Price: ₹30/kg</p>
-            <button class="btn" onclick="alert('Order feature coming soon!')">
-                Buy Now
-            </button>
-        </div>
+        <input class="input" type="text" placeholder="Shop Name"><br>
+        <input class="input" type="text" placeholder="Owner Name"><br>
+        <input class="input" type="tel" placeholder="Mobile Number"><br>
 
-        <div class="card">
-            <h3>👕 T-Shirt</h3>
-            <p>Price: ₹499</p>
-            <button class="btn" onclick="alert('Order feature coming soon!')">
-                Buy Now
-            </button>
-        </div>
-
-        <div class="card">
-            <h3>🎧 Earphones</h3>
-            <p>Price: ₹299</p>
-            <button class="btn" onclick="alert('Order feature coming soon!')">
-                Buy Now
-            </button>
-        </div>
-
-        <h2 class="section-title">Register Your Shop</h2>
-
-        <div class="card">
-
-            <input class="input" type="text" placeholder="Shop Name"><br>
-            <input class="input" type="text" placeholder="Owner Name"><br>
-            <input class="input" type="tel" placeholder="Mobile Number"><br>
-
-            <button class="btn" onclick="alert('Shop registration coming soon!')">
-                Register Shop
-            </button>
-
-        </div>
+        <button class="btn" onclick="alert('Shop registration coming soon!')">
+            Register Shop
+        </button>
 
     </div>
+
+</div>
+
+<script>
+function searchProducts() {
+    let input = document.getElementById("searchInput");
+    let filter = input.value.toLowerCase();
+    let cards = document.getElementsByClassName("card");
+
+    for (let i = 0; i < cards.length; i++) {
+        let text = cards[i].innerText.toLowerCase();
+
+        if (text.includes(filter)) {
+            cards[i].style.display = "";
+        } else {
+            cards[i].style.display = "none";
+        }
+    }
+}
+</script>
 
 </body>
 </html>
