@@ -16,6 +16,19 @@
             color:white;
             padding:20px;
             text-align:center;
+            position:relative;
+        }
+
+        .cart-box{
+            position:absolute;
+            right:15px;
+            top:20px;
+            background:white;
+            color:#2196F3;
+            padding:5px 10px;
+            border-radius:20px;
+            font-weight:bold;
+            cursor:pointer;
         }
 
         .container{
@@ -52,15 +65,21 @@
             margin-top:8px;
         }
 
-        img{
-            width:100%;
-            border-radius:10px;
-            margin-bottom:10px;
+        #cartBox{
+            display:none;
+            background:white;
+            padding:15px;
+            margin:15px auto;
+            max-width:350px;
+            border-radius:12px;
+            box-shadow:0 3px 10px rgba(0,0,0,0.2);
         }
 
-        .section-title{
-            margin-top:25px;
+        .note{
+            color:gray;
+            font-size:12px;
         }
+
     </style>
 </head>
 
@@ -69,78 +88,123 @@
 <div class="header">
     <h1>🛍️ Local Shopping</h1>
     <p>Shops Near Us</p>
+
+    <div class="cart-box" onclick="toggleCart()">
+        🛒 <span id="cartCount">0</span>
+    </div>
 </div>
 
 <div class="container">
 
     <h2>Welcome!</h2>
-    <p>Buy products from nearby local shops.</p>
+
+    <p class="note">Food items delivery radius: 5 KM only 🚚</p>
 
     <input class="input" type="text" id="searchInput" onkeyup="searchProducts()" placeholder="Search products...">
-    <p style="color:gray;">Search instantly 🔍</p>
 
-    <h2 class="section-title">Nearby Shops</h2>
-
-    <div class="card">
-        <h3>Fresh Grocery Store</h3>
-        <p>Vegetables, Fruits, Daily Essentials</p>
-        <a href="https://wa.me/911234567890">
-            <button class="btn">WhatsApp Shop</button>
-        </a>
-    </div>
+    <h2>Popular Products</h2>
 
     <div class="card">
-        <h3>Fashion Hub</h3>
-        <p>Clothes, Shoes, Accessories</p>
-        <button class="btn" onclick="alert('Contact coming soon!')">Contact Shop</button>
-    </div>
-
-    <div class="card">
-        <h3>Mobile World</h3>
-        <p>Smartphones, Chargers, Earphones</p>
-        <button class="btn" onclick="alert('Contact coming soon!')">Contact Shop</button>
-    </div>
-
-    <h2 class="section-title">Popular Products</h2>
-
-    <div class="card product">
-        <img src="https://via.placeholder.com/300x180?text=Tomato">
-        <h3>🍅 Tomato</h3>
+        <h3>🍅 Tomato (Food)</h3>
         <p>Price: ₹30/kg</p>
-        <button class="btn" onclick="alert('Order coming soon!')">Buy Now</button>
+        <button class="btn" onclick="addToCart('Tomato', true)">Add to Cart</button>
     </div>
 
-    <div class="card product">
-        <img src="https://via.placeholder.com/300x180?text=T-Shirt">
+    <div class="card">
+        <h3>🍞 Bread (Food)</h3>
+        <p>Price: ₹40</p>
+        <button class="btn" onclick="addToCart('Bread', true)">Add to Cart</button>
+    </div>
+
+    <div class="card">
         <h3>👕 T-Shirt</h3>
         <p>Price: ₹499</p>
-        <button class="btn" onclick="alert('Order coming soon!')">Buy Now</button>
+        <button class="btn" onclick="addToCart('T-Shirt', false)">Add to Cart</button>
     </div>
 
-    <div class="card product">
-        <img src="https://via.placeholder.com/300x180?text=Earphones">
-        <h3>🎧 Earphones</h3>
-        <p>Price: ₹299</p>
-        <button class="btn" onclick="alert('Order coming soon!')">Buy Now</button>
-    </div>
+    <div id="cartBox">
+        <h3>Your Cart 🛒</h3>
+        <ul id="cartList"></ul>
 
-    <h2 class="section-title">Register Your Shop</h2>
+        <p class="note">
+            Enter your distance from shop (KM):
+        </p>
+        <input class="input" type="number" id="distanceInput" placeholder="e.g. 3">
 
-    <div class="card">
-
-        <input class="input" type="text" placeholder="Shop Name"><br>
-        <input class="input" type="text" placeholder="Owner Name"><br>
-        <input class="input" type="tel" placeholder="Mobile Number"><br>
-
-        <button class="btn" onclick="alert('Shop registration coming soon!')">
-            Register Shop
-        </button>
-
+        <button class="btn" onclick="checkout()">Checkout</button>
     </div>
 
 </div>
 
 <script>
+
+let cart = [];
+
+function addToCart(item, isFood){
+    cart.push({name:item, food:isFood});
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCartUI();
+    alert(item + " added to cart 🛒");
+}
+
+function updateCartUI(){
+    document.getElementById("cartCount").innerText = cart.length;
+}
+
+function toggleCart(){
+    let box = document.getElementById("cartBox");
+
+    if(box.style.display === "block"){
+        box.style.display = "none";
+    } else {
+        box.style.display = "block";
+        showCart();
+    }
+}
+
+function showCart(){
+    let list = document.getElementById("cartList");
+    list.innerHTML = "";
+
+    cart.forEach(function(item){
+        let li = document.createElement("li");
+        li.innerText = item.name;
+        list.appendChild(li);
+    });
+}
+
+function checkout(){
+    if(cart.length === 0){
+        alert("Cart empty hai 😅");
+        return;
+    }
+
+    let distance = document.getElementById("distanceInput").value;
+
+    if(distance === ""){
+        alert("Please enter distance!");
+        return;
+    }
+
+    distance = parseFloat(distance);
+
+    // Check food delivery rule
+    for(let i=0;i<cart.length;i++){
+        if(cart[i].food && distance > 5){
+            alert("❌ Food delivery allowed only within 5 KM!\nThis order cannot be delivered.");
+            return;
+        }
+    }
+
+    alert("Order placed successfully 🛒\nTotal items: " + cart.length);
+
+    cart = [];
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCartUI();
+    showCart();
+    toggleCart();
+}
+
 function searchProducts() {
     let input = document.getElementById("searchInput");
     let filter = input.value.toLowerCase();
@@ -156,6 +220,7 @@ function searchProducts() {
         }
     }
 }
+
 </script>
 
 </body>
