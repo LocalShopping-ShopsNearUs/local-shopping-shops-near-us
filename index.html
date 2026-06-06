@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Local Shopping - Shops Near Us</title>
+    <title>Local Shopping - Multi Shop System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
@@ -63,39 +63,33 @@
 
 <div class="header">
     <h1>🛍️ Local Shopping</h1>
-    <p>Food + Grocery + Fashion + Electronics</p>
+    <p>Multi Shop System 🚚📍</p>
 </div>
 
 <div class="container">
 
     <h2>Enable GPS 📍</h2>
-    <button class="btn" onclick="getLocation()">Get Location</button>
+    <button class="btn" onclick="getLocation()">Get My Location</button>
     <p id="status" class="note"></p>
 
-    <h2>Products</h2>
+    <h2>Shops Near You</h2>
 
     <div class="card">
-        <h3>🍅 Tomato (Food)</h3>
-        <p>₹30/kg</p>
-        <button class="btn" onclick="orderItem('Tomato', true)">Order</button>
+        <h3>🥕 Fresh Grocery Store</h3>
+        <p>Food Items</p>
+        <button class="btn" onclick="orderFromShop('Grocery')">Order Food</button>
     </div>
 
     <div class="card">
-        <h3>🍞 Bread (Food)</h3>
-        <p>₹40</p>
-        <button class="btn" onclick="orderItem('Bread', true)">Order</button>
+        <h3>👕 Fashion Hub</h3>
+        <p>Clothes & Accessories</p>
+        <button class="btn" onclick="orderFromShop('Fashion')">Order Clothes</button>
     </div>
 
     <div class="card">
-        <h3>👕 T-Shirt</h3>
-        <p>₹499</p>
-        <button class="btn" onclick="orderItem('T-Shirt', false)">Order</button>
-    </div>
-
-    <div class="card">
-        <h3>📱 Mobile Charger</h3>
-        <p>₹199</p>
-        <button class="btn" onclick="orderItem('Charger', false)">Order</button>
+        <h3>📱 Mobile World</h3>
+        <p>Electronics</p>
+        <button class="btn" onclick="orderFromShop('Mobile')">Order Electronics</button>
     </div>
 
 </div>
@@ -105,9 +99,12 @@
 let userLat = null;
 let userLon = null;
 
-// Demo shop location
-let shopLat = 26.5000;
-let shopLon = 74.9000;
+// Multiple shop locations
+let shops = {
+    Grocery: {lat: 26.5000, lon: 74.9000, food: true},
+    Fashion: {lat: 26.5050, lon: 74.9050, food: false},
+    Mobile:  {lat: 26.5100, lon: 74.9100, food: false}
+};
 
 function getLocation(){
     if(navigator.geolocation){
@@ -147,40 +144,33 @@ function getDistance(lat1, lon1, lat2, lon2){
     return R * c;
 }
 
-// ORDER SYSTEM (UPDATED FOR ALL ITEMS)
-function orderItem(name, isFood){
+// ORDER FROM ANY SHOP
+function orderFromShop(shopName){
 
     if(userLat == null){
         alert("Please enable GPS first 📍");
         return;
     }
 
-    let distance = getDistance(userLat, userLon, shopLat, shopLon);
+    let shop = shops[shopName];
+
+    let distance = getDistance(userLat, userLon, shop.lat, shop.lon);
     distance = distance.toFixed(2);
 
     let deliveryFee = Math.round(distance * 5);
 
-    // ONLY FOOD restriction
-    if(isFood && distance > 5){
-        alert("❌ Food delivery only within 5 KM\nYour distance: " + distance + " KM");
+    // FOOD RULE (only grocery)
+    if(shop.food && distance > 5){
+        alert("❌ Food delivery only within 5 KM from Grocery Shop\nDistance: " + distance + " KM");
         return;
     }
 
-    if(isFood){
-        alert(
-            "🍔 Food Order Accepted!\n" +
-            "Item: " + name + "\n" +
-            "Distance: " + distance + " KM\n" +
-            "Delivery Fee: ₹" + deliveryFee
-        );
-    } else {
-        alert(
-            "📦 Order Accepted!\n" +
-            "Item: " + name + "\n" +
-            "Distance: " + distance + " KM\n" +
-            "Standard Delivery Available 🚚"
-        );
-    }
+    alert(
+        "🛍️ Order Placed!\n" +
+        "Shop: " + shopName + "\n" +
+        "Distance: " + distance + " KM\n" +
+        "Delivery Fee: ₹" + deliveryFee
+    );
 }
 
 </script>
