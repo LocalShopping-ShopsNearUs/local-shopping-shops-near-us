@@ -4,10 +4,6 @@
     <title>Local Shopping - Shops Near Us</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Leaflet Map (FREE) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
     <style>
         body{
             font-family: Arial;
@@ -25,13 +21,6 @@
         .container{
             padding:15px;
             text-align:center;
-        }
-
-        #map{
-            height:300px;
-            width:100%;
-            border-radius:12px;
-            margin-top:10px;
         }
 
         .card{
@@ -63,6 +52,10 @@
             border:1px solid #ccc;
         }
 
+        .note{
+            font-size:12px;
+            color:gray;
+        }
     </style>
 </head>
 
@@ -70,68 +63,104 @@
 
 <div class="header">
     <h1>🛍️ Local Shopping</h1>
-    <p>Shops Near Us (Map System)</p>
+    <p>Advanced Delivery System 🚚</p>
 </div>
 
 <div class="container">
 
-    <h2>Your Location 📍</h2>
-    <button class="btn" onclick="getLocation()">Show My Location</button>
+    <h2>Enable GPS 📍</h2>
+    <button class="btn" onclick="getLocation()">Get My Location</button>
 
-    <div id="map"></div>
+    <p id="status" class="note"></p>
 
-    <h2>Nearby Shops</h2>
+    <h2>Order Food 🍔</h2>
 
     <div class="card">
-        <h3>Fresh Grocery Store</h3>
-        <p>Vegetables, Fruits, Daily Essentials</p>
-        <button class="btn">Order Now</button>
+        <h3>🍅 Tomato (Food)</h3>
+        <p>₹30/kg</p>
+        <button class="btn" onclick="orderFood()">Order Now</button>
     </div>
 
     <div class="card">
-        <h3>Fashion Hub</h3>
-        <p>Clothes, Shoes, Accessories</p>
-        <button class="btn">Order Now</button>
+        <h3>🍞 Bread (Food)</h3>
+        <p>₹40</p>
+        <button class="btn" onclick="orderFood()">Order Now</button>
     </div>
 
 </div>
 
 <script>
 
-let map;
+let userLat = null;
+let userLon = null;
 
+// Shop fixed location (demo)
+let shopLat = 26.5000;
+let shopLon = 74.9000;
+
+// GPS
 function getLocation(){
     if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(showMap);
+        navigator.geolocation.getCurrentPosition(success, error);
     } else {
         alert("GPS not supported");
     }
 }
 
-function showMap(position){
+function success(position){
+    userLat = position.coords.latitude;
+    userLon = position.coords.longitude;
 
-    let lat = position.coords.latitude;
-    let lon = position.coords.longitude;
+    document.getElementById("status").innerText =
+    "Location detected ✔";
+}
 
-    // Create map
-    map = L.map('map').setView([lat, lon], 15);
+function error(){
+    alert("Please allow location access ❌");
+}
 
-    // OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+// Distance formula (Haversine)
+function getDistance(lat1, lon1, lat2, lon2){
 
-    // User marker
-    L.marker([lat, lon]).addTo(map)
-        .bindPopup("📍 You are here")
-        .openPopup();
+    let R = 6371; // km
+    let dLat = (lat2-lat1) * Math.PI / 180;
+    let dLon = (lon2-lon1) * Math.PI / 180;
 
-    // Demo shop markers
-    L.marker([lat + 0.002, lon + 0.002]).addTo(map)
-        .bindPopup("🛍️ Grocery Shop");
+    let a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1*Math.PI/180) *
+        Math.cos(lat2*Math.PI/180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
 
-    L.marker([lat - 0.002, lon - 0.002]).addTo(map)
-        .bindPopup("👕 Fashion Shop");
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c;
+}
+
+// Order system
+function orderFood(){
+
+    if(userLat == null){
+        alert("Please enable GPS first 📍");
+        return;
+    }
+
+    let distance = getDistance(userLat, userLon, shopLat, shopLon);
+
+    distance = distance.toFixed(2);
+
+    let deliveryFee = Math.round(distance * 5); // ₹5 per km
+
+    if(distance > 5){
+        alert("❌ Sorry! Food delivery only within 5 KM\nYour distance: " + distance + " KM");
+        return;
+    }
+
+    alert(
+        "✅ Order Accepted!\n" +
+        "Distance: " + distance + " KM\n" +
+        "Delivery Fee: ₹" + deliveryFee
+    );
 }
 
 </script>
