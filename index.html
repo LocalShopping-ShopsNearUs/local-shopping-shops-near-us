@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Local Shopping - Marketplace</title>
+    <title>Local Shopping - Final Master App</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
@@ -29,7 +29,7 @@
             margin:12px auto;
             border-radius:12px;
             box-shadow:0 3px 10px rgba(0,0,0,0.15);
-            max-width:350px;
+            max-width:380px;
             text-align:left;
         }
 
@@ -45,10 +45,29 @@
 
         .input{
             padding:10px;
-            width:90%;
-            margin:8px 0;
+            width:95%;
+            margin:6px 0;
             border-radius:8px;
             border:1px solid #ccc;
+        }
+
+        .topbar{
+            display:flex;
+            justify-content:space-between;
+            padding:10px;
+            background:#fff;
+            position:sticky;
+            top:0;
+        }
+
+        #cartBox{
+            display:none;
+            background:white;
+            padding:15px;
+            margin:15px auto;
+            max-width:380px;
+            border-radius:12px;
+            box-shadow:0 3px 10px rgba(0,0,0,0.2);
         }
 
         .note{
@@ -62,30 +81,41 @@
 
 <div class="header">
     <h1>🛍️ Local Shopping</h1>
-    <p>Marketplace + Shop Registration 🏪</p>
+    <p>FINAL MASTER APP 🚀</p>
+</div>
+
+<div class="topbar">
+    <button class="btn" onclick="getLocation()">📍 GPS</button>
+    <button class="btn" onclick="toggleCart()">🛒 Cart (<span id="cartCount">0</span>)</button>
 </div>
 
 <div class="container">
 
-    <h2>📍 Enable GPS</h2>
-    <button class="btn" onclick="getLocation()">Get My Location</button>
     <p id="status" class="note"></p>
 
-    <h2>🏪 Register Your Shop</h2>
+    <h2>🏪 Register Shop</h2>
 
     <div class="card">
-
         <input class="input" id="shopName" placeholder="Shop Name">
-        <input class="input" id="shopCategory" placeholder="Category (Food, Fashion etc)">
+        <input class="input" id="shopCategory" placeholder="Category (Food/Fashion/etc)">
         <input class="input" id="shopLat" placeholder="Latitude">
         <input class="input" id="shopLon" placeholder="Longitude">
 
-        <button class="btn" onclick="registerShop()">Register Shop</button>
-
+        <button class="btn" onclick="registerShop()">Register</button>
     </div>
 
-    <h2>🛍️ Registered Shops</h2>
+    <h2>🛍️ Shops</h2>
     <div id="shopList"></div>
+
+    <div id="cartBox">
+        <h3>🛒 Cart</h3>
+        <ul id="cartList"></ul>
+
+        <input class="input" id="distanceInput" placeholder="Your distance (auto GPS used)">
+        <button class="btn" onclick="checkout()">Checkout</button>
+
+        <p id="orderStatus" class="note"></p>
+    </div>
 
 </div>
 
@@ -94,56 +124,54 @@
 let userLat = null;
 let userLon = null;
 
-let shops = {};
+let cart = [];
+let orderStage = "Cart";
+
+let shops = {
+    Grocery: {category:"Food", lat:26.5000, lon:74.9000, food:true},
+    Fashion: {category:"Clothes", lat:26.5050, lon:74.9050, food:false},
+    Mobile: {category:"Electronics", lat:26.5100, lon:74.9100, food:false},
+    Books: {category:"Books", lat:26.5070, lon:74.9020, food:false}
+};
 
 // GPS
 function getLocation(){
     if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(success, error);
+        navigator.geolocation.getCurrentPosition(pos=>{
+            userLat = pos.coords.latitude;
+            userLon = pos.coords.longitude;
+            document.getElementById("status").innerText = "GPS Active ✔";
+        });
     } else {
         alert("GPS not supported");
     }
-}
-
-function success(position){
-    userLat = position.coords.latitude;
-    userLon = position.coords.longitude;
-
-    document.getElementById("status").innerText =
-    "Location active ✔";
-}
-
-function error(){
-    alert("Please allow GPS ❌");
 }
 
 // REGISTER SHOP
 function registerShop(){
 
     let name = document.getElementById("shopName").value;
-    let category = document.getElementById("shopCategory").value;
+    let cat = document.getElementById("shopCategory").value;
     let lat = parseFloat(document.getElementById("shopLat").value);
     let lon = parseFloat(document.getElementById("shopLon").value);
 
-    if(!name || !category || !lat || !lon){
-        alert("Please fill all fields");
+    if(!name || !cat || !lat || !lon){
+        alert("Fill all fields");
         return;
     }
 
     shops[name] = {
-        category: category,
+        category: cat,
         lat: lat,
         lon: lon,
-        food: (category.toLowerCase() === "food")
+        food: (cat.toLowerCase() === "food")
     };
 
-    alert("Shop Registered Successfully 🏪");
-
-    showShops();
+    renderShops();
 }
 
 // SHOW SHOPS
-function showShops(){
+function renderShops(){
 
     let div = document.getElementById("shopList");
     div.innerHTML = "";
@@ -152,13 +180,117 @@ function showShops(){
 
         div.innerHTML += `
         <div class="card">
-            <h3>${key}</h3>
+            <h3>🏪 ${key}</h3>
             <p>Category: ${shops[key].category}</p>
-            <p>Location: ${shops[key].lat}, ${shops[key].lon}</p>
+
+            <button class="btn" onclick="addToCart('${key}')">Add to Cart</button>
+            <button class="btn" onclick="orderShop('${key}')">Order Direct</button>
         </div>
         `;
     }
 }
+
+// CART
+function addToCart(item){
+    cart.push(item);
+    document.getElementById("cartCount").innerText = cart.length;
+    alert(item + " added 🛒");
+}
+
+function toggleCart(){
+    let box = document.getElementById("cartBox");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+    showCart();
+}
+
+function showCart(){
+    let list = document.getElementById("cartList");
+    list.innerHTML = "";
+
+    cart.forEach(i=>{
+        let li = document.createElement("li");
+        li.innerText = i;
+        list.appendChild(li);
+    });
+}
+
+// DISTANCE
+function getDistance(lat1, lon1, lat2, lon2){
+
+    let R = 6371;
+    let dLat = (lat2-lat1)*Math.PI/180;
+    let dLon = (lon2-lon1)*Math.PI/180;
+
+    let a =
+        Math.sin(dLat/2)**2 +
+        Math.cos(lat1*Math.PI/180) *
+        Math.cos(lat2*Math.PI/180) *
+        Math.sin(dLon/2)**2;
+
+    return 2*R*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ORDER
+function orderShop(name){
+
+    if(userLat == null){
+        alert("Enable GPS first 📍");
+        return;
+    }
+
+    let shop = shops[name];
+
+    let d = getDistance(userLat,userLon,shop.lat,shop.lon).toFixed(2);
+    let fee = Math.round(d*5);
+
+    if(shop.food && d > 5){
+        alert("❌ Food only within 5 KM\nDistance: "+d);
+        return;
+    }
+
+    orderStage = "Preparing";
+
+    alert("Order placed 🛍️\nDistance: "+d+" KM\nFee: ₹"+fee);
+
+    setTimeout(()=>{
+        orderStage = "Out for Delivery 🚚";
+        document.getElementById("orderStatus").innerText = orderStage;
+    },3000);
+
+    setTimeout(()=>{
+        orderStage = "Delivered ✅";
+        document.getElementById("orderStatus").innerText = orderStage;
+    },6000);
+}
+
+// CHECKOUT
+function checkout(){
+
+    if(cart.length === 0){
+        alert("Cart empty");
+        return;
+    }
+
+    orderStage = "Preparing";
+    document.getElementById("orderStatus").innerText = orderStage;
+
+    setTimeout(()=>{
+        orderStage = "Out for Delivery 🚚";
+        document.getElementById("orderStatus").innerText = orderStage;
+    },3000);
+
+    setTimeout(()=>{
+        orderStage = "Delivered ✅";
+        document.getElementById("orderStatus").innerText = orderStage;
+        cart = [];
+        document.getElementById("cartCount").innerText = 0;
+        showCart();
+    },6000);
+
+}
+
+// INITIAL LOAD
+renderShops();
 
 </script>
 
