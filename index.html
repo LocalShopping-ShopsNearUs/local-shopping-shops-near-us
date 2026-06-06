@@ -79,7 +79,6 @@
             color:gray;
             font-size:12px;
         }
-
     </style>
 </head>
 
@@ -98,7 +97,13 @@
 
     <h2>Welcome!</h2>
 
-    <p class="note">Food items delivery radius: 5 KM only 🚚</p>
+    <p class="note">We will use your GPS location for delivery 📍</p>
+
+    <button class="btn" onclick="getLocation()">
+        Enable GPS Location
+    </button>
+
+    <p id="locationText" class="note"></p>
 
     <input class="input" type="text" id="searchInput" onkeyup="searchProducts()" placeholder="Search products...">
 
@@ -126,11 +131,6 @@
         <h3>Your Cart 🛒</h3>
         <ul id="cartList"></ul>
 
-        <p class="note">
-            Enter your distance from shop (KM):
-        </p>
-        <input class="input" type="number" id="distanceInput" placeholder="e.g. 3">
-
         <button class="btn" onclick="checkout()">Checkout</button>
     </div>
 
@@ -139,10 +139,11 @@
 <script>
 
 let cart = [];
+let userLat = null;
+let userLon = null;
 
 function addToCart(item, isFood){
     cart.push({name:item, food:isFood});
-    localStorage.setItem("cart", JSON.stringify(cart));
     updateCartUI();
     alert(item + " added to cart 🛒");
 }
@@ -173,33 +174,55 @@ function showCart(){
     });
 }
 
+// 🌍 GPS LOCATION FUNCTION
+function getLocation(){
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+    } else {
+        alert("GPS not supported in your device");
+    }
+}
+
+function showPosition(position){
+    userLat = position.coords.latitude;
+    userLon = position.coords.longitude;
+
+    document.getElementById("locationText").innerText =
+    "Location saved ✔ (Delivery available)";
+}
+
+function showError(){
+    alert("Please allow location access ❌");
+}
+
+// 🚚 CHECKOUT (GPS BASED RULE)
 function checkout(){
     if(cart.length === 0){
         alert("Cart empty hai 😅");
         return;
     }
 
-    let distance = document.getElementById("distanceInput").value;
-
-    if(distance === ""){
-        alert("Please enter distance!");
+    if(userLat == null || userLon == null){
+        alert("Please enable GPS first 📍");
         return;
     }
 
-    distance = parseFloat(distance);
+    // Demo rule: food delivery allowed only if GPS enabled
+    let hasFood = false;
 
-    // Check food delivery rule
     for(let i=0;i<cart.length;i++){
-        if(cart[i].food && distance > 5){
-            alert("❌ Food delivery allowed only within 5 KM!\nThis order cannot be delivered.");
-            return;
+        if(cart[i].food){
+            hasFood = true;
         }
     }
 
-    alert("Order placed successfully 🛒\nTotal items: " + cart.length);
+    if(hasFood){
+        alert("🍔 Food order accepted!\nLocal delivery will be within 5 KM radius.");
+    } else {
+        alert("Order placed successfully 🛒");
+    }
 
     cart = [];
-    localStorage.setItem("cart", JSON.stringify(cart));
     updateCartUI();
     showCart();
     toggleCart();
