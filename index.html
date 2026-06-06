@@ -63,28 +63,39 @@
 
 <div class="header">
     <h1>🛍️ Local Shopping</h1>
-    <p>Advanced Delivery System 🚚</p>
+    <p>Food + Grocery + Fashion + Electronics</p>
 </div>
 
 <div class="container">
 
     <h2>Enable GPS 📍</h2>
-    <button class="btn" onclick="getLocation()">Get My Location</button>
-
+    <button class="btn" onclick="getLocation()">Get Location</button>
     <p id="status" class="note"></p>
 
-    <h2>Order Food 🍔</h2>
+    <h2>Products</h2>
 
     <div class="card">
         <h3>🍅 Tomato (Food)</h3>
         <p>₹30/kg</p>
-        <button class="btn" onclick="orderFood()">Order Now</button>
+        <button class="btn" onclick="orderItem('Tomato', true)">Order</button>
     </div>
 
     <div class="card">
         <h3>🍞 Bread (Food)</h3>
         <p>₹40</p>
-        <button class="btn" onclick="orderFood()">Order Now</button>
+        <button class="btn" onclick="orderItem('Bread', true)">Order</button>
+    </div>
+
+    <div class="card">
+        <h3>👕 T-Shirt</h3>
+        <p>₹499</p>
+        <button class="btn" onclick="orderItem('T-Shirt', false)">Order</button>
+    </div>
+
+    <div class="card">
+        <h3>📱 Mobile Charger</h3>
+        <p>₹199</p>
+        <button class="btn" onclick="orderItem('Charger', false)">Order</button>
     </div>
 
 </div>
@@ -94,11 +105,10 @@
 let userLat = null;
 let userLon = null;
 
-// Shop fixed location (demo)
+// Demo shop location
 let shopLat = 26.5000;
 let shopLon = 74.9000;
 
-// GPS
 function getLocation(){
     if(navigator.geolocation){
         navigator.geolocation.getCurrentPosition(success, error);
@@ -112,33 +122,33 @@ function success(position){
     userLon = position.coords.longitude;
 
     document.getElementById("status").innerText =
-    "Location detected ✔";
+    "Location active ✔";
 }
 
 function error(){
-    alert("Please allow location access ❌");
+    alert("Please allow GPS ❌");
 }
 
-// Distance formula (Haversine)
+// Distance formula
 function getDistance(lat1, lon1, lat2, lon2){
 
-    let R = 6371; // km
+    let R = 6371;
     let dLat = (lat2-lat1) * Math.PI / 180;
     let dLon = (lon2-lon1) * Math.PI / 180;
 
     let a =
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.sin(dLat/2)**2 +
         Math.cos(lat1*Math.PI/180) *
         Math.cos(lat2*Math.PI/180) *
-        Math.sin(dLon/2) * Math.sin(dLon/2);
+        Math.sin(dLon/2)**2;
 
     let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
     return R * c;
 }
 
-// Order system
-function orderFood(){
+// ORDER SYSTEM (UPDATED FOR ALL ITEMS)
+function orderItem(name, isFood){
 
     if(userLat == null){
         alert("Please enable GPS first 📍");
@@ -146,21 +156,31 @@ function orderFood(){
     }
 
     let distance = getDistance(userLat, userLon, shopLat, shopLon);
-
     distance = distance.toFixed(2);
 
-    let deliveryFee = Math.round(distance * 5); // ₹5 per km
+    let deliveryFee = Math.round(distance * 5);
 
-    if(distance > 5){
-        alert("❌ Sorry! Food delivery only within 5 KM\nYour distance: " + distance + " KM");
+    // ONLY FOOD restriction
+    if(isFood && distance > 5){
+        alert("❌ Food delivery only within 5 KM\nYour distance: " + distance + " KM");
         return;
     }
 
-    alert(
-        "✅ Order Accepted!\n" +
-        "Distance: " + distance + " KM\n" +
-        "Delivery Fee: ₹" + deliveryFee
-    );
+    if(isFood){
+        alert(
+            "🍔 Food Order Accepted!\n" +
+            "Item: " + name + "\n" +
+            "Distance: " + distance + " KM\n" +
+            "Delivery Fee: ₹" + deliveryFee
+        );
+    } else {
+        alert(
+            "📦 Order Accepted!\n" +
+            "Item: " + name + "\n" +
+            "Distance: " + distance + " KM\n" +
+            "Standard Delivery Available 🚚"
+        );
+    }
 }
 
 </script>
